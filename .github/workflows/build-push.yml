@@ -1,0 +1,70 @@
+# 构建 stash-qsv 镜像并推送到 GitHub Container Registry (GHCR)
+#
+# 版本跟随策略: 每次运行时查询 stashapp/stash 的最新 release tag (如 v0.31.1),
+# 以该 tag 作为 STASH_VERSION build-arg 构建, 并推送 <tag> 与 latest 两个标签。
+# 若 GHCR 上已存在该版本则跳过, 避免重复构建。
+
+name: build-push
+
+on:
+  workflow_dispatch:
+  schedule:
+    # 每天 05:23 UTC 检查一次官方新版本 (避开整点, 减轻 API/构建队列压力)
+    - cron: '23 5 * * *'
+
+env:
+  IMAGE: ghcr.io/${{ github.repository_owner }}/stash-qsv
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Resolve latest stash release version
+        id: version
+        run: |
+          TAG="$(gh api repos/stashapp/stash/releases/latest --jq .tag_name)"
+          echo "tag=${TAG}" >> "${GITHUB_OUTPUT}"
+          echo "Official stash release: ${TAG}"
+
+      - name: Skip if version already published
+        id: skip
+        run: |
+          if docker manifest inspect "${IMAGE}:${TAG}" >/dev/null 2>&1; then
+            echo "exists=true" >> "${GITHUB_OUTPUT}"
+          else
+            echo "exists=false" >> "${GITHUB_OUTPUT}"
+          fi
+        env:
+          TAG: ${{ steps.version.outputs.tag }}
+
+      - name: Set up Docker Buildx
+        if: steps.skip.outputs.exists == 'false'
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        if: steps.skip.outputs.exists == 'false'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push
+        if: steps.skip.outputs.exists == 'false'
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/amd64 # Intel QSV / intel-media-driver 仅对 x86_64 有意义
+          build-args: |
+            STASH_VERSION=${{ steps.version.outputs.tag }}
+          push: true
+          tags: |
+            ${{ env.IMAGE }}:${{ steps.version.outputs.tag }}
+            ${{ env.IMAGE }}:latest
