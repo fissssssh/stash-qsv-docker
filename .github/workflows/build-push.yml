@@ -28,6 +28,9 @@ jobs:
 
       - name: Resolve latest stash release version
         id: version
+        env:
+          # gh CLI 在 GitHub Actions 中必须显式注入 token 才能调用 API
+          GH_TOKEN: ${{ github.token }}
         run: |
           TAG="$(gh api repos/stashapp/stash/releases/latest --jq .tag_name)"
           echo "tag=${TAG}" >> "${GITHUB_OUTPUT}"
