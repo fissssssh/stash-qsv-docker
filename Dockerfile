@@ -14,7 +14,13 @@
 ARG STASH_VERSION=v0.31.1
 FROM stashapp/stash:${STASH_VERSION}
 
-RUN apk add --no-cache onevpl-intel-gpu
+# v0.31.1 (2026-04) 基于 Alpine 3.23, 而 onevpl-intel-gpu 从 Alpine 3.24 (2026-05) 才开始打包,
+# 所以从 3.24 的 main/community 仓库单独安装该包及其依赖, 不升级系统其余部分。
+# 若官方后续 release 基于 Alpine 3.24+, 可移除 --repository 参数 (默认仓库已有该包)。
+RUN apk add --no-cache \
+    --repository https://dl-cdn.alpinelinux.org/alpine/v3.24/main \
+    --repository https://dl-cdn.alpinelinux.org/alpine/v3.24/community \
+    onevpl-intel-gpu
 
 # 如需完全可复现的构建, 可固定包版本:
 #   RUN apk add --no-cache onevpl-intel-gpu=25.4.6-r1

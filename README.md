@@ -16,6 +16,14 @@
 （dispatcher 找到、implement 缺失），stash 的 `[InitHWSupport]` 就检测不到 QSV，
 MP4 转码（播放默认走的流）会回退到纯 CPU 的 libx264。
 
+## 版本说明
+
+- `stashapp/stash:v0.31.1`（2026-04 发布）基于 Alpine 3.23，而 `onevpl-intel-gpu`
+  从 Alpine 3.24（2026-05）才开始打包，因此 Dockerfile 中通过 `--repository`
+  指向 v3.24 仓库单独安装该包，不升级系统其余部分。
+- 镜像版本跟随官方 stash release tag：CI 每次查询 stashapp/stash 最新 release，
+  以其版本号构建并推送 `stash-qsv:<版本>` 与 `latest`。
+
 ## 硬件加速支持范围
 
 本镜像同时启用 VAAPI 与 QSV，但 stash 对不同转码流的硬件编码器白名单不同：
