@@ -6,7 +6,6 @@
 #   - intel-media-driver   (iHD 驱动, VA-API 的实际驱动)
 #   - onevpl-intel-gpu     (oneVPL Intel GPU implement, QSV 的 MFX session 依赖)
 #
-# onevpl-intel-gpu 会自动依赖安装 intel-media-driver，所以只需补这一个包。
 #
 # STASH_VERSION 默认 v0.31.1，仅用于本地构建；
 # CI 通过 --build-arg STASH_VERSION=<官方最新 release tag> 覆盖，镜像版本跟随官方。
@@ -16,12 +15,7 @@ FROM stashapp/stash:${STASH_VERSION}
 
 # v0.31.1 (2026-04) 基于 Alpine 3.23, 而 onevpl-intel-gpu 从 Alpine 3.24 (2026-05) 才开始打包,
 # 所以从 3.24 的 main/community 仓库单独安装该包及其依赖, 不升级系统其余部分。
-# 若官方后续 release 基于 Alpine 3.24+, 可移除 --repository 参数 (默认仓库已有该包)。
-RUN apk add --no-cache \
-    --repository https://dl-cdn.alpinelinux.org/alpine/v3.24/main \
-    --repository https://dl-cdn.alpinelinux.org/alpine/v3.24/community \
-    onevpl-intel-gpu libva-utils intel-media-driver
-
-# 如需完全可复现的构建, 可固定包版本:
-#   RUN apk add --no-cache onevpl-intel-gpu=25.4.6-r1
-# 注意: 若官方镜像后续升级 Alpine 基础版本, 旧版本号可能不存在于新仓库, 去掉版本号即可。
+RUN echo "https://dl-cdn.alpinelinux.org/alpine/v3.24/community" >> /etc/apk/repositories \
+    && apk update \
+    && apk add --no-cache \
+    libva-utils intel-media-driver onevpl-intel-gpu
