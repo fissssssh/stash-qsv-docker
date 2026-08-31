@@ -20,7 +20,7 @@ FROM stashapp/stash:${STASH_VERSION}
 RUN apk add --no-cache \
     --repository https://dl-cdn.alpinelinux.org/alpine/v3.24/main \
     --repository https://dl-cdn.alpinelinux.org/alpine/v3.24/community \
-    onevpl-intel-gpu
+    onevpl-intel-gpu libva-utils intel-media-driver
 
 # 如需完全可复现的构建, 可固定包版本:
 #   RUN apk add --no-cache onevpl-intel-gpu=25.4.6-r1
