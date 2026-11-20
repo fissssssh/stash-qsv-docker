@@ -20,9 +20,6 @@ RUN apk update \
          libva-utils \
          intel-media-driver \
          jellyfin-ffmpeg \
-    && apk add --no-cache \
-         --repository=https://dl-cdn.alpinelinux.org/alpine/v3.24/community \
-         onevpl-intel-gpu \
     && ln -sf /usr/lib/jellyfin-ffmpeg/ffmpeg  /usr/bin/ffmpeg \
     && ln -sf /usr/lib/jellyfin-ffmpeg/ffprobe /usr/bin/ffprobe \
     && /usr/bin/ffmpeg -hide_banner -version | head -1
