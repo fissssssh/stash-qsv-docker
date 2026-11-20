@@ -16,5 +16,13 @@ FROM stashapp/stash:${STASH_VERSION}
 # v0.31.1 (2026-04) 基于 Alpine 3.23, 而 onevpl-intel-gpu 从 Alpine 3.24 (2026-05) 才开始打包,
 # 所以从 3.24 的 main/community 仓库单独安装该包及其依赖, 不升级系统其余部分。
 RUN apk update \
-    && apk add --no-cache libva-utils intel-media-driver \
-    && apk add --repository=https://dl-cdn.alpinelinux.org/alpine/v3.24/community onevpl-intel-gpu
+    && apk add --no-cache \
+         libva-utils \
+         intel-media-driver \
+         jellyfin-ffmpeg \
+    && apk add --no-cache \
+         --repository=https://dl-cdn.alpinelinux.org/alpine/v3.24/community \
+         onevpl-intel-gpu \
+    && ln -sf /usr/lib/jellyfin-ffmpeg/ffmpeg  /usr/bin/ffmpeg \
+    && ln -sf /usr/lib/jellyfin-ffmpeg/ffprobe /usr/bin/ffprobe \
+    && /usr/bin/ffmpeg -hide_banner -version | head -1
